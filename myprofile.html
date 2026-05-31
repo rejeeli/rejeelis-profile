@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejeeli | guns.lol</title>
+    <link rel="icon" href="https://cdn.discordapp.com/attachments/1439972460647813170/1510675047038058516/1780093486257.png?ex=6a1dad46&is=6a1c5bc6&hm=2ae8275c3dadb150588f7972c25ef47967a332a3f498a23773e73bdbada91ab5&" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --accent: #ff3a3a;
+            --text: #e0e0e0;
+            --secondary: #999;
+            --card-bg: rgba(10, 10, 10, 0.85);
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 30px 15px;
+            background: #000000; 
+            position: relative;
+            overflow-x: hidden;
+            perspective: 1000px;
+            cursor: none; 
+        }
+
+        .enter-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: none;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s;
+        }
+        .enter-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 3px;
+            color: #fff;
+            text-shadow: 0 0 15px var(--accent);
+            animation: pulse 1.5s infinite ease-in-out;
+            user-select: none;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.97); }
+            50% { opacity: 1; transform: scale(1.03); text-shadow: 0 0 25px var(--accent), 0 0 40px #ff0000; }
+            100% { opacity: 0.3; transform: scale(0.97); }
+        }
+
+        .flash-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--accent);
+            z-index: 99998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.1s ease-out;
+        }
+
+        .bg-parallax {
+            position: fixed;
+            top: -5%;
+            left: -5%;
+            width: 110%;
+            height: 110%;
+            background: url('https://cdn.discordapp.com/attachments/1439972460647813170/1510673704361791650/263_20260529170434.png?ex=6a1dac06&is=6a1c5a86&hm=dde51e4417fa1718aa9ab113aa8f9348ee3fa055e28bd4e52273a10673a30099&') center 30%/cover no-repeat;
+            opacity: 0.55;
+            filter: brightness(45%) contrast(110%);
+            z-index: -2;
+            will-change: transform;
+            transition: transform 0.1s ease-out;
+        }
+
+        #fireCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .custom-cursor {
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            position: fixed;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 0 10px #fff;
+        }
+        .custom-cursor-glow {
+            width: 30px;
+            height: 30px;
+            border: 1.5px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 15px rgba(255, 58, 58, 0.4);
+            transition: width 0.25s, height 0.25s, background-color 0.25s;
+        }
+        .custom-cursor-glow.hovered {
+            width: 55px;
+            height: 55px;
+            background-color: rgba(255, 58, 58, 0.1);
+            border-color: var(--accent);
+        }
+
+        .container {
+            max-width: 680px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .play-prompt {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(5, 5, 5, 0.95);
+            color: #fff;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            z-index: 60;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 15px rgba(255, 58, 58, 0.3);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .show-prompt {
+            animation: fadeOut 3.5s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 0; transform: translate(-50%, -10px); }
+            15% { opacity: 1; transform: translate(-50%, 0); }
+            85% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -10px); display: none; }
+        }
+
+        .profile-header {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-logo {
+            width: 150px; 
+            height: auto;
+            object-fit: contain;
+            background: transparent;
+            border: none;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 30px rgba(255,58,58,0.6);
+            object-fit: cover;
+            background: #101010;
+        }
+
+        .username {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #fff;
+            position: relative;
+            animation: glowPulse 2.5s infinite alternate;
+        }
+        .username::before, .username::after {
+            content: 'Rejeeli';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            display: none;
+        }
+        .glitch-active::before {
+            display: block;
+            left: 2px;
+            text-shadow: -2px 0 #ff0000;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 0.4s infinite linear alternate-reverse;
+        }
+        .glitch-active::after {
+            display: block;
+            left: -2px;
+            text-shadow: -2px 0 #00ffff;
+            clip: rect(85px, 450px, 140px, 0);
+            animation: glitch-anim2 0.4s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(15px, 9999px, 66px, 0); }
+            100% { clip: rect(34px, 9999px, 55px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(70px, 9999px, 105px, 0); }
+            100% { clip: rect(12px, 9999px, 85px, 0); }
+        }
+
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 8px #ff3a3a, 0 0 20px #ff0000, 0 0 35px #ff000066; }
+            100% { text-shadow: 0 0 14px #ff5555, 0 0 32px #ff3333, 0 0 50px #ff0000aa; }
+        }
+
+        .bio {
+            color: var(--secondary);
+            font-size: 1rem;
+            max-width: 400px;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 6px 18px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .clock {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--accent);
+            background: rgba(0,0,0,0.8);
+            padding: 4px 20px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 58, 58, 0.2);
+            box-shadow: 0 0 15px rgba(255, 58, 58, 0.15);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 16px;
+            width: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: var(--shadow);
+            transition: border-color 0.25s, box-shadow 0.25s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+            text-align: center;
+            transform-style: preserve-3d;
+            will-change: transform;
+            cursor: none;
+        }
+        
+        .card:hover {
+            border-color: rgba(255, 58, 58, 0.6);
+            box-shadow: 0 12px 30px rgba(255, 58, 58, 0.25), inset 0 0 15px rgba(255, 58, 58, 0.05);
+        }
+
+        .card i, .card .title, .card .detail {
+            transform: translateZ(25px);
+            transition: transform 0.25s;
+        }
+
+        .card i {
+            font-size: 2.2rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(255, 58, 58, 0.4);
+        }
+        .card .title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        .card .detail {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            direction: ltr;
+        }
+
+        .music-card {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 18px;
+            padding: 18px 22px;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(35,10,10,0.85));
+            border: 1px solid rgba(255, 0, 0, 0.15);
+        }
+        .music-cover {
+            width: 65px;
+            height: 65px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid rgba(255,255,255,0.15);
+            flex-shrink: 0;
+            transform: translateZ(20px);
+        }
+        .music-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            transform: translateZ(20px);
+        }
+        .song-name {
+            font-weight: bold;
+            font-size: 1.05rem;
+            color: #fff;
+        }
+        .artist {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #ff7373);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            width: 30px;
+            height: 30px;
+            margin-right: auto;
+            transform: translateZ(20px);
+        }
+        .bar {
+            width: 4px;
+            height: 5px;
+            background-color: var(--accent);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--accent);
+            transition: height 0.15s ease;
+        }
+
+        .music-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            background: var(--card-bg);
+            border: 1px solid rgba(255,58,58,0.3);
+            color: var(--accent);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, border-color 0.2s;
+            opacity: 0;
+            visibility: hidden;
+            cursor: none;
+        }
+        .music-toggle:hover {
+            transform: scale(1.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(255, 58, 58, 0.4);
+        }
+
+        footer {
+            margin-top: 15px;
+            color: #333;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .custom-cursor, .custom-cursor-glow { display: none; }
+            body, .card, .enter-screen, .music-toggle { cursor: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="custom-cursor" id="dotCursor"></div>
+    <div class="custom-cursor-glow" id="glowCursor"></div>
+
+    <div class="bg-parallax" id="parallaxBg"></div>
+
+    <div class="enter-screen" id="enterScreen">
+        <div class="enter-text">[ CLICK TO ENTER ]</div>
+    </div>
+
+    <div class="flash-effect" id="flashLayer"></div>
+
+    <div class="play-prompt" id="playPrompt">darth Rejeeli sends his greetings</div>
+
+    <canvas id="fireCanvas"></canvas>
+
+    <div class="music-toggle" id="musicToggle">
+        <i class="fas fa-volume-mute" id="musicIcon"></i>
+    </div>
+
+    <audio id="audioPlayer" src="https://cdn.discordapp.com/attachments/1407729113598525501/1510629937411915796/Shadows_of_Evil_Round_Changing_Music_Extendedslowed___reverbMP3_160K.mp3?ex=6a1d8343&is=6a1c31c3&hm=f896adacfb560cc49cd17e1a5d2cca8bc5c930c0580502f8390c7d214d4f03a2&" loop></audio>
+
+    <div class="container" id="mainContainer">
+
+        <div class="profile-header">
+            <img src="https://cdn.discordapp.com/attachments/1439972460647813170/1510675047038058516/1780093486257.png?ex=6a1dad46&is=6a1c5bc6&hm=2ae8275c3dadb150588f7972c25ef47967a332a3f498a23773e73bdbada91ab5&" alt="Rejeeli Logo" class="top-logo">
+            
+            <img src="https://cdn.discordapp.com/attachments/1439972460647813170/1510217213657743540/2cc7e5f7bac36c896022612dcdae45e0.jpg?ex=6a1d5462&is=6a1c02e2&hm=513b105ff60037df4b099218ecfd867aee6c052fafee490adffe919832a286db&" alt="Rejeeli" class="avatar">
+            <div class="username" id="usernameText">Rejeeli</div>
+            <div class="bio">The Sith</div>
+            <div class="clock" id="liveClock">00:00:00</div>
+        </div>
+
+        <div class="grid" id="cardGrid">
+            <div class="card music-card">
+                <img src="https://cdn.discordapp.com/attachments/1407729113598525501/1510652396785631332/0f333c4dec25dec02517b0b2ad39c2ea.jpg?ex=6a1d982d&is=6a1c46ad&hm=0646b6fd78c880aad09c74f609b649a840588aa1c2feb58c65e09b2cc9928fe8&" alt="Song Cover" class="music-cover">
+                <div class="music-info">
+                    <div class="song-name">Shadows of Evil (Slowed)</div>
+                    <div class="artist">BO3 Zombies Theme</div>
+                    <div class="progress-bar"><div class="progress" id="musicProgress"></div></div>
+                </div>
+                <div class="visualizer" id="visualizer">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+
+            <a href="https://instagram.com/www.instagram.com/da_7it6?igsh=N2NneXVjcTd6OHd4" class="card clickable" target="_blank">
+                <i class="fab fa-instagram"></i>
+                <span class="title">Instagram</span>
+                <span class="detail">@da_7it6</span>
+            </a>
+
+            <a href="https://tiktok.com/www.tiktok.com/@a6yu2_3?_r=1&_t=ZS-96ldV8CxC7B" class="card clickable" target="_blank">
+                <i class="fab fa-tiktok"></i>
+                <span class="title">TikTok</span>
+                <span class="detail">@a6yu2_3</span>
+            </a>
+
+            <a href="https://github.com/github.com/rejeeli" class="card clickable" target="_blank">
+                <i class="fab fa-github"></i>
+                <span class="title">GitHub</span>
+                <span class="detail">rejeeli</span>
+            </a>
+
+            <a href="#" class="card clickable" id="discordCard">
+                <i class="fab fa-discord"></i>
+                <span class="title">Discord</span>
+                <span class="detail" id="discordDisplay">Rejeeli#0001</span>
+            </a>
+        </div>
+
+        <footer>made by Rejeeli</footer>
+    </div>
+
+    <script>
+        const audio = document.getElementById('audioPlayer');
+        const progressBar = document.getElementById('musicProgress');
+        const enterScreen = document.getElementById('enterScreen');
+        const flashLayer = document.getElementById('flashLayer');
+        const mainContainer = document.getElementById('mainContainer');
+        const musicToggle = document.getElementById('musicToggle');
+        const musicIcon = document.getElementById('musicIcon');
+        const playPrompt = document.getElementById('playPrompt');
+        const parallaxBg = document.getElementById('parallaxBg');
+        const visualizerBars = document.querySelectorAll('#visualizer .bar');
+        let isMuted = true;
+        let vInterval;
+
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const percentage = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = percentage + '%';
+            }
+        });
+
+        function toggleVisualizer(play) {
+            if (play) {
+                vInterval = setInterval(() => {
+                    visualizerBars.forEach(bar => {
+                        const height = Math.floor(Math.random() * 24) + 6;
+                        bar.style.height = height + 'px';
+                    });
+                }, 120);
+            } else {
+                clearInterval(vInterval);
+                visualizerBars.forEach(bar => bar.style.height = '5px');
+            }
+        }
+
+        const dotCursor = document.getElementById('dotCursor');
+        const glowCursor = document.getElementById('glowCursor');
+        let cursorX = -100, cursorY = -100;
+        let glowX = -100, glowY = -100;
+
+        window.addEventListener('mousemove', (e) => {
+            cursorX = e.clientX;
+            cursorY = e.clientY;
+            dotCursor.style.left = cursorX + 'px';
+            dotCursor.style.top = cursorY + 'px';
+
+            const moveX = (window.innerWidth / 2 - cursorX) * 0.025;
+            const moveY = (window.innerHeight / 2 - cursorY) * 0.025;
+            parallaxBg.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
+        });
+
+        function updateGlowPosition() {
+            let dx = cursorX - glowX;
+            let dy = cursorY - glowY;
+            glowX += dx * 0.15;
+            glowY += dy * 0.15;
+            glowCursor.style.left = glowX + 'px';
+            glowCursor.style.top = glowY + 'px';
+            requestAnimationFrame(updateGlowPosition);
+        }
+        updateGlowPosition();
+
+        const clickables = document.querySelectorAll('.clickable, .enter-screen, .music-toggle');
+        clickables.forEach(el => {
+            el.addEventListener('mouseenter', () => glowCursor.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => glowCursor.classList.remove('hovered'));
+        });
+
+        const usernameText = document.getElementById('usernameText');
+        setInterval(() => {
+            usernameText.classList.add('glitch-active');
+            setTimeout(() => {
+                usernameText.classList.remove('glitch-active');
+            }, 350);
+        }, 4000);
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('liveClock').textContent = 
+                [now.getHours(), now.getMinutes(), now.getSeconds()]
+                .map(n => String(n).padStart(2,'0')).join(':');
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        document.getElementById('discordCard').addEventListener('click', function(e) {
+            e.preventDefault();
+            const tag = document.getElementById('discordDisplay').textContent;
+            navigator.clipboard.writeText(tag).then(() => {
+                alert('تم نسخ المعرف بنجاح: ' + tag);
+            }).catch(() => {
+                prompt('انسخ المعرف من هنا يدويًا:', tag);
+            });
+        });
+
+        enterScreen.addEventListener('click', function() {
+            flashLayer.style.opacity = '0.7';
+            setTimeout(() => { flashLayer.style.opacity = '0'; }, 100);
+
+            enterScreen.style.opacity = '0';
+            enterScreen.style.visibility = 'hidden';
+
+            mainContainer.style.opacity = '1';
+            mainContainer.style.transform = 'translateY(0)';
+            musicToggle.style.opacity = '1';
+            musicToggle.style.visibility = 'visible';
+
+            audio.play().catch(err => console.log("Autoplay blocked: ", err));
+            musicIcon.className = 'fas fa-volume-up';
+            isMuted = false;
+            toggleVisualizer(true);
+
+            playPrompt.classList.add('show-prompt');
+
+            resizeCanvas();
+            animateParticles();
+        });
+
+        musicToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (isMuted) {
+                audio.play();
+                musicIcon.className = 'fas fa-volume-up';
+                isMuted = false;
+                toggleVisualizer(true);
+            } else {
+                audio.pause();
+                musicIcon.className = 'fas fa-volume-mute';
+                isMuted = true;
+                toggleVisualizer(false);
+            }
+        });
+
+        const canvas = document.getElementById('fireCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let mouse = { x: -1000, y: -1000 };
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        function createParticle() {
+            return {
+                x: Math.random() * width,
+                y: height + Math.random() * 50,
+                size: Math.random() * 2.5 + 0.5,
+                speedY: Math.random() * 1.2 + 0.4,
+                speedX: Math.random() * 0.6 - 0.3,
+                opacity: Math.random() * 0.5 + 0.2,
+                colorValue: Math.random()
+            };
+        }
+
+        function initParticles() {
+            resizeCanvas();
+            particles = [];
+            const count = Math.floor(width * 0.08);
+            for (let i = 0; i < count; i++) {
+                let p = createParticle();
+                p.y = Math.random() * height;
+                particles.push(p);
+            }
+        }
+        initParticles();
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+
+            for (let p of particles) {
+                p.y -= p.speedY;
+                p.x += p.speedX;
+
+                let dx = p.x - mouse.x;
+                let dy = p.y - mouse.y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 90) {
+                    let force = (90 - distance) / 90;
+                    p.x += (dx / distance) * force * 3;
+                }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                let r = 255;
+                let g = p.colorValue > 0.6 ? Math.floor(60 + p.colorValue * 40) : 40;
+                let b = p.colorValue < 0.2 ? 50 : 40;
+                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity})`;
+                ctx.fill();
+
+                if (p.y < -10 || p.x < -10 || p.x > width + 10) {
+                    Object.assign(p, createParticle());
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; 
+                const y = e.clientY - rect.top; 
+                
+                const xc = rect.width / 2;
+                const yc = rect.height / 2;
+                
+                const angleX = (yc - y) / yc * 12;
+                const angleY = (x - xc) / xc * 12;
+                
+                card.style.transform = `rotateX(${angleX}deg) rotateY(${angleY}deg) translateY(-4px)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateX(0deg) rotateY(0deg) translateY(0)';
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if(particles.length === 0) initParticles();
+        });
+    </script>
+</body>
+</html>
